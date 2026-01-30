@@ -15,6 +15,7 @@ import FeatureSection from "@/components/FeatureSection";
 import WalletDropdown from "@/components/WalletDropdown";
 import WhyChooseStellar from "@/components/WhyChooseStellar";
 import ValueProposition from "@/components/ValueProposition";
+import PricingSection from "@/components/PricingSection";
 
 export default function Home() {
   const [isWalletDropdownOpen, setIsWalletDropdownOpen] = useState(false);
@@ -149,6 +150,9 @@ export default function Home() {
 
         {/* Why Choose Stellar Section */}
         <WhyChooseStellar />
+
+        {/* Pricing Section */}
+        <PricingSection />
 
       {/* FAQ Section */}
       < FAQSection />
