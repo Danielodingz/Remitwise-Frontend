@@ -10,7 +10,7 @@ import {
   Users,
   TrendingUp,
 } from "lucide-react";
-import AllocationStatusCard from "@/components/AllocationStatusCard";
+
 import FAQSection from "@/components/FAQSection";
 import FeatureSection from "@/components/FeatureSection";
 import WalletDropdown from "@/components/WalletDropdown";
@@ -57,9 +57,7 @@ export default function Home() {
 
       {/* Pricing Section */}
       <PricingSection />
-      <div className="flex justify-center py-20 bg-black">
-        <AllocationStatusCard percentage={100} />
-      </div>
+      
       {/* FAQ Section */}
       <FAQSection />
     </main>
