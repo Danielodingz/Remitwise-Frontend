@@ -172,3 +172,23 @@ Notes:
 - These endpoints return a transaction XDR composed of `manageData` operations that encode the requested action. The frontend should sign the returned XDR and submit it to Horizon (or via a backend submission endpoint) to complete the operation.
 - Server builds transactions using the Horizon URL in `HORIZON_URL` and network passphrase in `NETWORK_PASSPHRASE` (defaults to testnet). Set these environment variables in production to use a different network.
 
+Insurance endpoints (v1)
+
+- `POST /api/insurance` — Create policy transaction XDR
+   - Request headers: `x-user` (caller public key)
+   - Body: `{ name, coverageType, monthlyPremium, coverageAmount }`
+   - Validations: `monthlyPremium > 0`, `coverageAmount > 0`, required `name` and `coverageType`.
+   - Response: `{ xdr: string }` — unsigned transaction XDR ready for the frontend to sign and submit.
+
+- `POST /api/insurance/[id]/pay` — Build pay-premium transaction XDR
+   - Request headers: `x-user` (caller public key)
+   - Response: `{ xdr: string }`
+
+- `POST /api/insurance/[id]/deactivate` — Build deactivate-policy transaction XDR
+   - Request headers: `x-user` (caller public key)
+   - Optional owner-only enforcement: set header `x-owner-only: 1` and `x-owner` to require the caller match the owner.
+   - Response: `{ xdr: string }`
+
+Notes:
+- These endpoints return transaction XDRs composed with `manageData` operations to encode policy actions. If you prefer Soroban contract invocations, I can convert the builders to use contract calls.
+
