@@ -14,10 +14,19 @@ import {
   SorobanClientError,
 } from "@/lib/soroban/client";
 import { prisma } from "@/lib/prisma";
+import {
+  getResolvedContractIds,
+  getSorobanNetwork,
+} from "@/lib/contracts/network-resolution";
 
 export const runtime = "nodejs";
 
 export async function GET() {
+  const network = getSorobanNetwork();
+  const includeContractDetails =
+    process.env.NODE_ENV !== "production" ||
+    process.env.HEALTH_INCLUDE_CONTRACT_IDS === "true";
+
   // ── 1. Database ─────────────────────────────────────────────────
   let database: { reachable: boolean; error?: string };
   try {
@@ -33,6 +42,7 @@ export async function GET() {
     latestLedger?: number;
     protocolVersion?: number;
     networkPassphrase?: string;
+    network?: string;
     error?: string;
   };
   try {
@@ -42,10 +52,12 @@ export async function GET() {
       latestLedger: ledger.sequence,
       protocolVersion: Number(ledger.protocolVersion),
       networkPassphrase: getNetworkPassphrase(),
+      network,
     };
   } catch (err) {
     rpc = {
       reachable: false,
+      network,
       error:
         err instanceof SorobanClientError
           ? err.message
@@ -66,6 +78,7 @@ export async function GET() {
       database,
       rpc,
       anchor,
+      contractIds: includeContractDetails ? getResolvedContractIds() : undefined,
       timestamp: new Date().toISOString(),
     },
     { status: healthy ? 200 : 503 }

@@ -22,7 +22,10 @@ const RPC_URL =
   process.env.SOROBAN_RPC_URL ?? "https://soroban-testnet.stellar.org";
 
 const NETWORK_PASSPHRASE =
-  process.env.SOROBAN_NETWORK_PASSPHRASE ?? Networks.TESTNET;
+  process.env.SOROBAN_NETWORK_PASSPHRASE ??
+  (process.env.SOROBAN_NETWORK === "mainnet"
+    ? Networks.PUBLIC
+    : Networks.TESTNET);
 
 /** How long (ms) to wait for a single RPC call before aborting. */
 const TIMEOUT_MS = 10_000;

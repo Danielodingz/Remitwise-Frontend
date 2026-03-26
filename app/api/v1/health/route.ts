@@ -1,17 +1,28 @@
 import { NextResponse } from 'next/server';
 import * as StellarSdk from '@stellar/stellar-sdk';
 import prisma from '@/lib/db';
+import {
+  getResolvedContractIds,
+  getSorobanNetwork,
+} from '@/lib/contracts/network-resolution';
 
 /**
  * Health check endpoint for monitoring system status and connectivity.
  * GET /api/health (rewritten to /api/v1/health)
  */
 export async function GET() {
+  const network = getSorobanNetwork();
+  const includeContractDetails =
+    process.env.NODE_ENV !== 'production' ||
+    process.env.HEALTH_INCLUDE_CONTRACT_IDS === 'true';
+
   const results = {
     status: 'ok',
     database: 'ok' as 'ok' | 'error',
     rpc: 'ok' as 'ok' | 'error',
     anchor: 'skipped' as 'ok' | 'error' | 'skipped',
+    network,
+    contractIds: includeContractDetails ? getResolvedContractIds() : undefined,
   };
 
   let criticalFailure = false;

@@ -227,15 +227,24 @@ Create a `.env.local` file in the root directory with the following variables:
 ```bash
 # Stellar Network Configuration
 NEXT_PUBLIC_STELLAR_NETWORK=testnet  # or 'mainnet'
+SOROBAN_NETWORK=testnet              # server-side network selector: testnet|mainnet
 NEXT_PUBLIC_HORIZON_URL=https://horizon-testnet.stellar.org
 NEXT_PUBLIC_SOROBAN_RPC_URL=https://soroban-testnet.stellar.org
+SOROBAN_RPC_URL=https://soroban-testnet.stellar.org
 
-# Contract IDs (deployed Soroban contracts)
-NEXT_PUBLIC_REMITTANCE_SPLIT_CONTRACT_ID=
-NEXT_PUBLIC_SAVINGS_GOALS_CONTRACT_ID=
-NEXT_PUBLIC_BILL_PAYMENTS_CONTRACT_ID=
-NEXT_PUBLIC_INSURANCE_CONTRACT_ID=
-NEXT_PUBLIC_FAMILY_WALLET_CONTRACT_ID=
+# Contract IDs (server-side network resolution)
+# Option A: set per-network vars
+REMITTANCE_SPLIT_CONTRACT_ID_TESTNET=
+REMITTANCE_SPLIT_CONTRACT_ID_MAINNET=
+SAVINGS_GOALS_CONTRACT_ID_TESTNET=
+SAVINGS_GOALS_CONTRACT_ID_MAINNET=
+BILL_PAYMENTS_CONTRACT_ID_TESTNET=
+BILL_PAYMENTS_CONTRACT_ID_MAINNET=
+INSURANCE_CONTRACT_ID_TESTNET=
+INSURANCE_CONTRACT_ID_MAINNET=
+
+# Option B: single JSON with network keys
+# CONTRACT_IDS_JSON={"testnet":{"REMITTANCE_SPLIT_CONTRACT_ID":"...","SAVINGS_GOALS_CONTRACT_ID":"...","BILL_PAYMENTS_CONTRACT_ID":"...","INSURANCE_CONTRACT_ID":"..."},"mainnet":{"REMITTANCE_SPLIT_CONTRACT_ID":"...","SAVINGS_GOALS_CONTRACT_ID":"...","BILL_PAYMENTS_CONTRACT_ID":"...","INSURANCE_CONTRACT_ID":"..."}}
 
 # Authentication
 AUTH_SECRET=your-secret-key-here  # Generate with: openssl rand -base64 32
@@ -395,19 +404,20 @@ RemitWise uses wallet-based authentication with the following flow:
 
 The application interacts with the following Soroban smart contracts on Stellar:
 
-| Contract         | Purpose                       | Environment Variable                       |
-| ---------------- | ----------------------------- | ------------------------------------------ |
-| Remittance Split | Automatic money allocation    | `NEXT_PUBLIC_REMITTANCE_SPLIT_CONTRACT_ID` |
-| Savings Goals    | Goal-based savings management | `NEXT_PUBLIC_SAVINGS_GOALS_CONTRACT_ID`    |
-| Bill Payments    | Bill tracking and payments    | `NEXT_PUBLIC_BILL_PAYMENTS_CONTRACT_ID`    |
-| Insurance        | Micro-insurance policies      | `NEXT_PUBLIC_INSURANCE_CONTRACT_ID`        |
-| Family Wallet    | Family member management      | `NEXT_PUBLIC_FAMILY_WALLET_CONTRACT_ID`    |
+| Contract         | Purpose                       | Preferred Environment Variable                    |
+| ---------------- | ----------------------------- | ------------------------------------------------- |
+| Remittance Split | Automatic money allocation    | `REMITTANCE_SPLIT_CONTRACT_ID_TESTNET/_MAINNET` |
+| Savings Goals    | Goal-based savings management | `SAVINGS_GOALS_CONTRACT_ID_TESTNET/_MAINNET`    |
+| Bill Payments    | Bill tracking and payments    | `BILL_PAYMENTS_CONTRACT_ID_TESTNET/_MAINNET`    |
+| Insurance        | Micro-insurance policies      | `INSURANCE_CONTRACT_ID_TESTNET/_MAINNET`        |
+| Family Wallet    | Family member management      | `FAMILY_WALLET_CONTRACT_ID_TESTNET/_MAINNET`    |
 
 **Deployment Notes:**
 
 - Contracts must be deployed to Stellar testnet/mainnet before use
-- Update contract IDs in `.env.local` after deployment
-- Verify contract addresses match network (testnet vs mainnet)
+- Set `SOROBAN_NETWORK=testnet|mainnet` to choose active deployment
+- Provide contract IDs per network or via `CONTRACT_IDS_JSON`
+- `/api/health` includes current network and resolved contract IDs outside production (or when `HEALTH_INCLUDE_CONTRACT_IDS=true`)
 - Contract ABIs are included in `lib/contracts/` directory
 
 ### Health and Monitoring

@@ -1,4 +1,3 @@
-import { compose, withAuth } from "@/lib/auth/middleware";
 import { NextRequest, NextResponse } from "next/server";
 
 /**
@@ -51,4 +50,6 @@ export const getHandler = async (req: NextRequest) => {
 
 
 
-export const GET = compose(withAuth)(getHandler);
+export async function GET(req: NextRequest) {
+  return getHandler(req);
+}
