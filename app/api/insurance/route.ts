@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { compose, validatedRoute, withAuth } from "@/lib/auth/middleware";
+import { validatedRoute } from "@/lib/auth/middleware";
 import { getTranslator } from "@/lib/i18n";
 import { getActivePolicies } from "@/lib/contracts/insurance-cached";
-import { validateAuth, unauthorizedResponse } from "@/lib/auth";
 
 const billSchema = z.object({
   policyName: z.string().min(4, "Name is too short"),
@@ -63,10 +62,10 @@ const getInsuranceHandler = async (request: NextRequest) => {
   }
 }
 
-// if auth is needed on a route
-// compose auth + validation — order matters: auth runs first
-// export const POST = compose(withAuth)(addInsuranceHandler);
+export async function POST(request: NextRequest) {
+  return addInsuranceHandler(request);
+}
 
-// if you don't need auth on a route, just export directly:
-export const POST = compose(withAuth)(addInsuranceHandler);
-export const GET = compose(withAuth)(getInsuranceHandler);
+export async function GET(request: NextRequest) {
+  return getInsuranceHandler(request);
+}

@@ -1,13 +1,19 @@
 import { Contract, scValToNative, nativeToScVal } from "@stellar/stellar-sdk";
 import rpc from "@stellar/stellar-sdk"
 import { getSorobanClient } from "../soroban-client";
+import { resolveContractId } from "./network-resolution";
 
 
-
-const CONTRACT_ID = process.env.SAVINGS_GOALS_CONTRACT_ID!;
 
 const server = getSorobanClient();
-const contract = new Contract(CONTRACT_ID);
+
+function getContractId(): string {
+  return resolveContractId("SAVINGS_GOALS");
+}
+
+function getContract(): Contract {
+  return new Contract(getContractId());
+}
 
 export interface SavingsGoal {
   id: string;
@@ -31,8 +37,9 @@ function mapToGoal(id: string, rawData: any): SavingsGoal {
 }
 
 export async function getGoal(goalId: string): Promise<SavingsGoal | null> {
+  const contractId = getContractId();
   const result = await server.getContractData(
-    CONTRACT_ID,
+    contractId,
     nativeToScVal(goalId),
     rpc.Durability.Persistent);
 
@@ -47,6 +54,7 @@ export async function getGoal(goalId: string): Promise<SavingsGoal | null> {
 
 
 export async function getAllGoals(owner: string): Promise<SavingsGoal[]> {
+  const contract = getContract();
   const operation = contract.call(
     "get_all_goals",
     nativeToScVal(owner)

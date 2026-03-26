@@ -21,7 +21,6 @@
 
 import {
   Contract,
-  Networks,
   TransactionBuilder,
   nativeToScVal,
   scValToNative,
@@ -31,6 +30,10 @@ import {
 // import { Server as SorobanServer, assembleTransaction } from "@stellar/stellar-sdk/rpc";
 import { Server as SorobanServer } from "@stellar/stellar-sdk/lib/soroban";
 import { BillsSummary, InsuranceSummary, RemittanceSummary, SavingsSummary } from "../types/dashboard";
+import {
+  getSorobanNetworkPassphrase,
+  resolveContractId,
+} from "./network-resolution";
 
 // ─── RPC client (singleton) ────────────────────────────────────────────────
 
@@ -39,10 +42,7 @@ function getRpcServer(): SorobanServer {
   return new SorobanServer(url);
 }
 
-const NETWORK_PASSPHRASE =
-  process.env.STELLAR_NETWORK === "mainnet"
-    ? Networks.PUBLIC
-    : Networks.TESTNET;
+const NETWORK_PASSPHRASE = getSorobanNetworkPassphrase();
 
 // Dummy source account used only for read simulations (no signing needed).
 // Any funded account works; we use a well-known testnet faucet address.
@@ -116,8 +116,7 @@ export class ContractReadError extends Error {
 export async function getRemittanceSummary(
   userAddress: string
 ): Promise<RemittanceSummary> {
-  const contractId = process.env.REMITTANCE_CONTRACT_ID;
-  if (!contractId) throw new ContractReadError("", "remittance", "REMITTANCE_CONTRACT_ID not set");
+  const contractId = resolveContractId("REMITTANCE_SPLIT");
 
   const addressVal = nativeToScVal(Address.fromString(userAddress), { type: "address" });
 
@@ -154,8 +153,7 @@ export async function getRemittanceSummary(
 export async function getSavingsSummary(
   userAddress: string
 ): Promise<SavingsSummary> {
-  const contractId = process.env.SAVINGS_CONTRACT_ID;
-  if (!contractId) throw new ContractReadError("", "savings", "SAVINGS_CONTRACT_ID not set");
+  const contractId = resolveContractId("SAVINGS_GOALS");
 
   const addressVal = nativeToScVal(Address.fromString(userAddress), { type: "address" });
 
@@ -183,8 +181,7 @@ export async function getSavingsSummary(
 export async function getBillsSummary(
   userAddress: string
 ): Promise<BillsSummary> {
-  const contractId = process.env.BILLS_CONTRACT_ID;
-  if (!contractId) throw new ContractReadError("", "bills", "BILLS_CONTRACT_ID not set");
+  const contractId = resolveContractId("BILL_PAYMENTS");
 
   const addressVal = nativeToScVal(Address.fromString(userAddress), { type: "address" });
 
@@ -219,8 +216,7 @@ export async function getBillsSummary(
 export async function getInsuranceSummary(
   userAddress: string
 ): Promise<InsuranceSummary> {
-  const contractId = process.env.INSURANCE_CONTRACT_ID;
-  if (!contractId) throw new ContractReadError("", "insurance", "INSURANCE_CONTRACT_ID not set");
+  const contractId = resolveContractId("INSURANCE");
 
   const addressVal = nativeToScVal(Address.fromString(userAddress), { type: "address" });
 

@@ -2,30 +2,38 @@
 
 import * as StellarSdk from '@stellar/stellar-sdk';
 import { BuildTxResult } from '@/lib/types/savings-goals';
-import { parseContractError, createSystemError, ContractErrorCode } from '@/lib/errors/contract-errors';
+import { parseContractError, createSystemError } from '@/lib/errors/contract-errors';
+import {
+  getSorobanNetwork,
+  getSorobanNetworkPassphrase,
+  resolveContractId,
+} from '@/lib/contracts/network-resolution';
 
 // Get contract ID from environment
 const getContractId = (): string => {
-  const contractId = process.env.NEXT_PUBLIC_SAVINGS_GOALS_CONTRACT_ID;
-  if (!contractId) {
+  try {
+    return resolveContractId('SAVINGS_GOALS');
+  } catch {
     throw createSystemError('NEXT_PUBLIC_SAVINGS_GOALS_CONTRACT_ID is not configured', {
       contractId: 'savings-goals'
     }, false);
   }
-  return contractId;
 };
 
 // Get network configuration
 const getNetworkConfig = () => {
-  const network = process.env.NEXT_PUBLIC_STELLAR_NETWORK || 'testnet';
-  const rpcUrl = process.env.NEXT_PUBLIC_STELLAR_RPC_URL || 'https://soroban-testnet.stellar.org';
+  const network = getSorobanNetwork();
+  const rpcUrl =
+    process.env.SOROBAN_RPC_URL ||
+    process.env.NEXT_PUBLIC_STELLAR_RPC_URL ||
+    (network === 'mainnet'
+      ? 'https://soroban.stellar.org'
+      : 'https://soroban-testnet.stellar.org');
   
   return {
     network,
     rpcUrl,
-    networkPassphrase: network === 'mainnet' 
-      ? StellarSdk.Networks.PUBLIC 
-      : StellarSdk.Networks.TESTNET
+    networkPassphrase: getSorobanNetworkPassphrase(),
   };
 };
 

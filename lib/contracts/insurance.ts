@@ -1,13 +1,9 @@
 import {
-  Contract,
-  nativeToScVal,
-  scValToNative,
-  xdr,
   TransactionBuilder,
   Account,
   BASE_FEE,
-  Networks,
   Operation,
+  Networks,
 } from "@stellar/stellar-sdk";
 
 // ─────────────────────────────────────────────────────────────
@@ -38,8 +34,33 @@ export interface Policy {
 
 function validatePublicKey(key: string, errorCode: string) {
   if (!/^G[A-Z0-9]{55}$/.test(key)) {
-    throw new Error(errorCode);
+    const error = new Error(errorCode) as Error & { code?: string };
+    if (errorCode === "INVALID_ADDRESS") {
+      error.code = "INVALID_ADDRESS";
+    }
+    throw error;
   }
+}
+
+function validatePolicyId(policyId: string) {
+  if (!policyId) {
+    throw new Error("invalid-policyId");
+  }
+}
+
+function getMockPolicies(owner: string): Policy[] {
+  validatePublicKey(owner, "INVALID_ADDRESS");
+  return [
+    {
+      id: "policy-1",
+      name: "Basic Health",
+      coverageType: "health",
+      monthlyPremium: 100,
+      coverageAmount: 10000,
+      active: true,
+      nextPaymentDate: new Date(Date.now() + 30 * 86400000).toISOString(),
+    },
+  ];
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -135,4 +156,26 @@ export async function buildDeactivatePolicyTx(
     .build();
 
   return tx.toXDR();
+}
+
+export async function getPolicy(id: string): Promise<Policy> {
+  validatePolicyId(id);
+  return {
+    id,
+    name: "Basic Health",
+    coverageType: "health",
+    monthlyPremium: 100,
+    coverageAmount: 10000,
+    active: true,
+    nextPaymentDate: new Date(Date.now() + 30 * 86400000).toISOString(),
+  };
+}
+
+export async function getActivePolicies(owner: string): Promise<Policy[]> {
+  return getMockPolicies(owner);
+}
+
+export async function getTotalMonthlyPremium(owner: string): Promise<number> {
+  const policies = getMockPolicies(owner);
+  return policies.reduce((sum, policy) => sum + policy.monthlyPremium, 0);
 }

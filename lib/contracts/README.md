@@ -2,6 +2,15 @@
 
 This directory contains integration modules for Stellar smart contracts.
 
+## Network-based Contract Resolution
+
+Server-side contract modules resolve IDs from `SOROBAN_NETWORK` (`testnet` or `mainnet`) using:
+
+- per-network env vars like `REMITTANCE_SPLIT_CONTRACT_ID_TESTNET` and `REMITTANCE_SPLIT_CONTRACT_ID_MAINNET`, or
+- a single `CONTRACT_IDS_JSON` value keyed by network.
+
+Shared resolver: `lib/contracts/network-resolution.ts`.
+
 ## family-wallet.ts
 
 Contract read/write layer for the family wallet functionality.

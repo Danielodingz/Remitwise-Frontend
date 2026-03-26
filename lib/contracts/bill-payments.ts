@@ -6,6 +6,16 @@ import {
   Operation,
 } from "@stellar/stellar-sdk";
 
+export interface Bill {
+  id: string;
+  owner: string;
+  name: string;
+  amount: number;
+  dueDate: string;
+  recurring: boolean;
+  status: "paid" | "unpaid" | "cancelled";
+}
+
 // ─────────────────────────────────────────────
 // Helpers
 // ─────────────────────────────────────────────
@@ -22,6 +32,31 @@ function validateDueDate(date: string) {
   }
 }
 
+function getMockBills(owner: string): Bill[] {
+  validatePublicKey(owner, "invalid-owner");
+  const now = Date.now();
+  return [
+    {
+      id: "bill-1",
+      owner,
+      name: "Electric Bill",
+      amount: 50,
+      dueDate: new Date(now + 7 * 86400000).toISOString(),
+      recurring: true,
+      status: "unpaid",
+    },
+    {
+      id: "bill-2",
+      owner,
+      name: "Internet Bill",
+      amount: 80,
+      dueDate: new Date(now - 3 * 86400000).toISOString(),
+      recurring: true,
+      status: "paid",
+    },
+  ];
+}
+
 // ─────────────────────────────────────────────
 // Create Bill
 // ─────────────────────────────────────────────
@@ -32,14 +67,14 @@ export async function buildCreateBillTx(
   amount: number,
   dueDate: string,
   isRecurring: boolean,
-  frequencyDays: number
+  frequencyDays?: number
 ): Promise<string> {
 
   validatePublicKey(owner, "invalid-owner");
 
   if (amount <= 0) throw new Error("invalid-amount");
 
-  if (isRecurring && frequencyDays <= 0) {
+  if (isRecurring && (!frequencyDays || frequencyDays <= 0)) {
     throw new Error("invalid-frequency");
   }
 
@@ -70,7 +105,7 @@ export async function buildCreateBillTx(
     txBuilder.addOperation(
       Operation.manageData({
         name: "frequency",
-        value: frequencyDays.toString(),
+        value: String(frequencyDays),
       })
     );
   }
@@ -130,4 +165,28 @@ export async function buildCancelBillTx(
     .build();
 
   return tx.toXDR();
+}
+
+export async function getAllBills(owner: string): Promise<Bill[]> {
+  return getMockBills(owner);
+}
+
+export async function getBill(id: string, owner: string): Promise<Bill> {
+  if (!id) {
+    throw new Error("invalid-billId");
+  }
+  const bill = getMockBills(owner).find((item) => item.id === id);
+  if (!bill) {
+    throw new Error("not-found");
+  }
+  return bill;
+}
+
+export async function getUnpaidBills(owner: string): Promise<Bill[]> {
+  return (await getAllBills(owner)).filter((bill) => bill.status !== "paid");
+}
+
+export async function getTotalUnpaid(owner: string): Promise<number> {
+  const bills = await getUnpaidBills(owner);
+  return bills.reduce((sum, bill) => sum + bill.amount, 0);
 }
