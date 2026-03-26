@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server';
 import { validatePaginationParams, paginateData, PaginatedResult } from '../../../../lib/utils/pagination';
+import { requireAuth } from '@/lib/session';
 
 // Mock data structure for transaction history - in a real app this would come from a contract or database
 interface Transaction {
@@ -32,6 +33,8 @@ const mockTransactions: Transaction[] = [
 
 export async function GET(request: NextRequest) {
   try {
+    await requireAuth();
+
     // Extract pagination parameters from query
     const url = new URL(request.url);
     const limitParam = url.searchParams.get('limit');
@@ -55,6 +58,9 @@ export async function GET(request: NextRequest) {
 
     return Response.json(paginatedResult);
   } catch (error) {
+    if (error instanceof Response && error.status === 401) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     console.error('Error fetching transaction history:', error);
     return Response.json({ error: 'Failed to fetch transaction history' }, { status: 500 });
   }
@@ -63,6 +69,8 @@ export async function GET(request: NextRequest) {
 // POST handler for creating transactions (future use)
 export async function POST(request: NextRequest) {
   try {
+    await requireAuth();
+
     const body = await request.json();
     
     // In a real implementation, this would create a transaction via contract or database
@@ -82,6 +90,9 @@ export async function POST(request: NextRequest) {
 
     return Response.json(newTransaction, { status: 201 });
   } catch (error) {
+    if (error instanceof Response && error.status === 401) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     console.error('Error creating transaction:', error);
     return Response.json({ error: 'Failed to create transaction' }, { status: 500 });
   }

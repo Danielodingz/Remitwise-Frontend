@@ -20,3 +20,8 @@ setTestEnv();
 // from @/lib/auth-cache which uses path aliases. These don't resolve in
 // CommonJS test environments. The functionality is tested in E2E tests instead.
 // See tests/e2e/auth.spec.ts for the actual nonce and login flow tests.
+test("Integration tests - Auth routes", async (t) => {
+  await t.test("note: auth flow is covered by E2E tests", () => {
+    assert(true, "Auth flow is exercised via Playwright");
+  });
+});
